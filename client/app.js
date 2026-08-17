@@ -112,8 +112,6 @@
     const [submitting, setSubmitting] = useState(false);
     const bottomRef = useRef(null);
 
-      pushMessage({ from: 'user', text: text.trim() });
-
     function pushMessage(m){
       if (!m.timestamp) m.timestamp = new Date().toISOString();
       setMessages(prev => [...prev, m]);
@@ -173,8 +171,7 @@
 
       const userText = messages.filter(m=>m.from==='user').map(m=>m.text).join(' ');
       const conditions = detectConditions(userText);
-      const rating = overallRating(phqScore, gadScore, flaggedUrgent);
-
+      const flaggedUrgent = conditions.includes('Suicidal thoughts (urgent)');
       const rating = overallRating(phqScore, gadScore, flaggedUrgent);
 
       let summary = `Summary:\nPHQ-9: ${phqScore} (${phqLevel}). GAD-7: ${gadScore} (${gadLevel}). Overall rating: ${rating}.`;
@@ -189,7 +186,8 @@
         const suggestions = [];
         if (flaggedUrgent) suggestions.push('Contact local emergency services or a crisis hotline immediately.');
         if (phqScore >= 10) suggestions.push('Consider seeking a professional mental health assessment for depression.');
-        if (gadScore >= 10) suggestions.push('Consider talking to a counselor about anxiety management.');        if (!flaggedUrgent && phqScore < 10 && gadScore < 10) suggestions.push('Symptoms appear mild; monitor and reach out if they worsen.');
+        if (gadScore >= 10) suggestions.push('Consider talking to a counselor about anxiety management.');
+        if (!flaggedUrgent && phqScore < 10 && gadScore < 10) suggestions.push('Symptoms appear mild; monitor and reach out if they worsen.');
 
         if (suggestions.length){
           pushMessage({ from: 'bot', text: 'Suggested next steps:\n' + suggestions.join('\n') });
@@ -206,7 +204,7 @@
           const stored = JSON.parse(localStorage.getItem('mindwell_responses') || '[]');
           stored.push(payload);
           localStorage.setItem('mindwell_responses', JSON.stringify(stored));
-          pushMessage({ from: 'bot', text: 'Saved locally to your browser (localStorage). You can download your data with the "Download data" button.' });
+          pushMessage({ from: 'bot', text: 'Saved locally to your browser (localStorage). You can download your data as a PDF with the "Download PDF" button.' });
         } catch (err){
           console.error('local save failed', err);
           pushMessage({ from: 'bot', text: 'Could not save locally — your browser may block storage.' });
@@ -233,17 +231,98 @@
 
     function downloadData(){
       try{
-        const stored = localStorage.getItem('mindwell_responses') || '[]';
-        const blob = new Blob([stored], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `mindwell_responses_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (err){ console.error('download failed', err); }
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          throw new Error('PDF library failed to load.');
+        }
+
+        const raw = localStorage.getItem('mindwell_responses') || '[]';
+        const stored = JSON.parse(raw);
+        const doc = new window.jspdf.jsPDF();
+        const margin = 14;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        const formatJsonValue = (value) => {
+          if (value === null || value === undefined) return '—';
+          if (typeof value === 'string') return value;
+          if (Array.isArray(value)) return value.join(', ');
+          if (typeof value === 'object') return JSON.stringify(value, null, 2);
+          return String(value);
+        };
+
+        const addWrappedText = (text, x, y, maxWidth, lineHeight = 6) => {
+          const lines = doc.splitTextToSize(text, maxWidth);
+          lines.forEach((line) => {
+            if (y > pageHeight - margin) {
+              doc.addPage();
+              y = margin;
+            }
+            doc.text(line, x, y);
+            y += lineHeight;
+          });
+          return y;
+        };
+
+        doc.setFontSize(18);
+        doc.setTextColor(35, 53, 97);
+        doc.text('MindWell - Assessment Report', margin, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 30);
+
+        let y = 42;
+
+        if (!stored || stored.length === 0) {
+          y = addWrappedText('No saved responses found.', margin, y, pageWidth - margin * 2);
+        } else {
+          stored.forEach((entry, index) => {
+            if (y > pageHeight - 30) {
+              doc.addPage();
+              y = margin;
+            }
+
+            doc.setFontSize(12);
+            doc.setTextColor(35, 53, 97);
+            doc.text(`Entry ${index + 1}`, margin, y);
+            y += 8;
+
+            doc.setFontSize(9);
+            doc.setTextColor(40, 40, 40);
+
+            const info = [
+              `Date: ${entry.timestamp || 'Unknown'}`,
+              `PHQ-9 score: ${entry.phqScore ?? 'N/A'}`,
+              `GAD-7 score: ${entry.gadScore ?? 'N/A'}`,
+              `PHQ-9 level: ${formatJsonValue(entry.phqLevel)}`,
+              `GAD-7 level: ${formatJsonValue(entry.gadLevel)}`,
+              `Overall rating: ${formatJsonValue(entry.rating)}`,
+              `Detected concerns: ${formatJsonValue(entry.conditions)}`
+            ];
+
+            info.forEach((line) => {
+              y = addWrappedText(line, margin, y, pageWidth - margin * 2, 5);
+            });
+
+            if (entry.transcript && Array.isArray(entry.transcript)) {
+              y = addWrappedText('Transcript:', margin, y, pageWidth - margin * 2, 5);
+              entry.transcript.forEach((message) => {
+                const prefix = message.from === 'bot' ? 'Bot' : 'User';
+                const msgText = `${prefix}: ${message.text || ''}`;
+                y = addWrappedText(msgText, margin + 6, y, pageWidth - margin * 2 - 6, 5);
+              });
+            }
+
+            y += 8;
+          });
+        }
+
+        const filename = `mindwell_responses_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`;
+        doc.save(filename);
+      } catch (err){
+        console.error('PDF download failed', err);
+        alert('PDF export failed. Please make sure the PDF library loaded correctly and try again.');
+      }
     }
 
     function clearData(){
@@ -252,6 +331,12 @@
         pushMessage({ from: 'bot', text: 'Local saved responses cleared.' });
       }
     }
+
+    useEffect(() => {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }, [messages]);
 
     return e('div', null,
       e('div', { className: 'header-row' },
@@ -290,7 +375,7 @@
       ),
 
       e('div', { className: 'controls' },
-        e('button', { onClick: downloadData }, 'Download data'),
+        e('button', { onClick: downloadData }, 'Download PDF'),
         e('button', { onClick: clearData }, 'Clear saved responses')
       ),
 

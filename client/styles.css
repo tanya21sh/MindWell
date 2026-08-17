@@ -18,10 +18,10 @@ header p{ margin:0; color:var(--muted); font-size:13px }
 .chat-wrap{ margin-top:16px; }
 .chat-window{ display:flex; flex-direction:column; gap:6px; min-height:420px; max-height:66vh; overflow:auto; padding:18px; border:1px solid #e8f0ff; border-radius:12px; background: linear-gradient(180deg,#ffffff, #fbfdff); }
 .chat-msg{ display:flex; gap:10px; margin:6px 0; max-width:88%; line-height:1.45; }
-.chat-row{ display:flex; align-items:flex-end }
+.chat-row{ display:flex; align-items:flex-start; }
 .chat-msg.bot{ align-self:flex-start; background: #f8fafc; color:#0b1220; padding:12px 14px; border-radius:12px; border:1px solid #eef6ff; }
 .chat-msg.user{ align-self:flex-end; margin-left:auto; background: linear-gradient(90deg,var(--accent), var(--accent-2)); color: #fff; padding:12px 14px; border-radius:12px; }
-.msg-avatar{ width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff }
+.msg-avatar{ width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; margin-top:4px; }
 .msg-avatar.bot{ background:#e6f0ff; color:#1a202c }
 .msg-avatar.user{ background: linear-gradient(90deg,var(--accent), var(--accent-2)) }
 .msg-body{ display:flex; flex-direction:column }

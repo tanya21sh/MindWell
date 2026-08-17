@@ -2,40 +2,77 @@
 
 Prototype full-stack mental-health chatbot demo
 
-This repository contains a minimal prototype app (Express server + static React frontend via CDN) that asks PHQ-9 and GAD-7 style questions, computes scores client-side, and stores responses in a JSON file (server/data/responses.json).
+This repository contains a minimal prototype app (Express server + static React frontend) that asks PHQ-9 and GAD-7 style questions, computes scores client-side, and stores responses in a JSON file at server/data/responses.json.
 
-Run locally (server present):
+## Run the full project locally
 
-1. Install server dependencies (only if you wish to run the server):
+From the project root:
 
-   cd server
+1. Go to the server folder:
+
+   cd /workspaces/MindWell/server
+
+2. Install dependencies:
+
    npm install
 
-2. Start the server:
+3. Start the app:
 
    npm start
 
-3. Open http://localhost:3000 in a browser.
+4. Open the app in your browser:
 
-Client-only (publish to GitHub Pages — fully free):
+   http://localhost:3000
 
-The app can run entirely in the browser (no server) and store responses in the user's browser localStorage. To publish the frontend on GitHub Pages using the repo's "docs/" folder (free):
+## Run on a custom port
 
-1. Copy the client files into the docs/ folder (already added in this repo).
-2. Commit and push to GitHub (already done in the feature branch). If not present:
+If port 3000 is already in use, start the app on another port:
 
-   git add docs
-   git commit -m "Add docs site for GitHub Pages"
-   git push
+   cd /workspaces/MindWell/server
+   PORT=4000 npm start
 
-3. In your GitHub repository settings > Pages, set the source to "main branch /docs folder" and save. The site will be published at https://<your-username>.github.io/<repo-name>/.
+Then open:
 
-Notes on the client-only mode:
-- Responses are saved only in the user's browser (localStorage) — not sent to any server. This is fully free and preserves privacy but data is only available on that device/browser.
-- A "Download data" button is provided so users can export their saved responses as JSON and share or backup them manually.
-- If you need central storage (server), that requires hosting and may incur costs.
+   http://localhost:4000
 
-Notes:
+You can replace 4000 with any free port number, for example:
+
+   PORT=8080 npm start
+   PORT=9000 npm start
+
+If you want to stop a running server that is holding the port:
+
+   kill <PID>
+
+To find the process using port 3000:
+
+   lsof -nP -iTCP:3000 -sTCP:LISTEN
+
+## Project structure
+
+- client/ — frontend HTML, CSS, and JS
+- server/ — Express backend and saved responses storage
+- server/data/responses.json — data file the app writes to
+
+## Client-only option
+
+The app can also run entirely in the browser with localStorage instead of the Express server.
+
+To publish the frontend to GitHub Pages using the docs/ folder:
+
+1. Make sure the files in docs/ are up to date.
+2. Commit and push to GitHub.
+3. In GitHub repository settings > Pages, choose Source: "Deploy from a branch" and set the folder to docs.
+4. Your site will be published at:
+
+   https://<your-username>.github.io/<repo-name>/
+
+Notes on client-only mode:
+- responses are saved only in the current browser
+- data is not stored centrally
+- a Download data button lets users export responses as JSON
+
+## Notes
+
 - This is a prototype for educational/demo purposes only and is not a diagnostic tool.
-
-A Chatbot which helps to deal with mental stress.
+- A Chatbot which helps to deal with mental stress.
