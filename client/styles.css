@@ -1,0 +1,9 @@
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f7fafc; color: #1a202c; padding: 24px; }
+#root { max-width: 720px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 6px 18px rgba(2,6,23,0.08);} 
+h1 { margin-top: 0 }
+.question { margin: 12px 0; }
+.options button { margin: 6px; }
+.radio-row { display:flex; gap:12px; align-items:center; margin:6px 0 }
+.result { background:#f0fff4; border:1px solid #c6f6d5; padding:12px; border-radius:6px; margin-top:12px }
+footer { margin-top:18px; font-size:13px; color:#718096 }
