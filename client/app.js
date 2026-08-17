@@ -41,7 +41,6 @@
     return level;
   }
 
-  // Simple keyword-based detector for likely conditions (rule-based, not a diagnosis)
   function detectConditions(text){
     const t = (text||'').toLowerCase();
     const findings = [];
@@ -60,24 +59,34 @@
   }
 
   function overallRating(phqScore, gadScore, flaggedUrgent){
-    // Determine rating: Good / Bad / Worst
     if (flaggedUrgent || phqScore >= 20 || gadScore >= 15) return 'Worst';
     if (phqScore >= 10 || gadScore >= 10) return 'Bad';
     return 'Good';
   }
 
+  function formatTime(iso){
+    try{ const d = new Date(iso); return d.toLocaleString(); }catch(e){ return iso }
+  }
+
   function ChatMessage({m}){
-    const cls = m.from === 'bot' ? 'bot' : 'user';
-    return e('div', { className: `chat-msg ${cls}` }, m.text);
+    const isBot = m.from === 'bot';
+    const avatar = isBot ? e('div', { className: 'msg-avatar bot' }, 'MW') : e('div', { className: 'msg-avatar user' }, 'You');
+    return e('div', { className: 'chat-row' },
+      avatar,
+      e('div', { className: 'msg-body' },
+        e('div', { className: `chat-msg ${isBot ? 'bot' : 'user'}` }, e('div', { className: 'msg-text' }, m.text)),
+        e('div', { className: 'msg-meta' }, formatTime(m.timestamp || m.time || new Date().toISOString()))
+      )
+    );
   }
 
   function App(){
     const [messages, setMessages] = useState([
-      { from: 'bot', text: 'Hi — I\'m MindWell. I can ask a few questions to understand how you\'re feeling. This is a prototype and not a diagnosis. For emergencies, contact local emergency services.' },
-      { from: 'bot', text: 'Can you briefly describe what\'s been bothering you recently? You can type freely.' }
+      { from: 'bot', text: 'Hi — I\'m MindWell. I can ask a few questions to understand how you\'re feeling. This is a prototype and not a diagnosis. For emergencies, contact local emergency services.', timestamp: new Date().toISOString() },
+      { from: 'bot', text: 'Can you briefly describe what\'s been bothering you recently? You can type freely.', timestamp: new Date().toISOString() }
     ]);
 
-    const [phase, setPhase] = useState('open'); // open, phq, gad, more, done
+    const [phase, setPhase] = useState('open');
     const [phqAnswers, setPhqAnswers] = useState(Array(PHQ9.length).fill(null));
     const [gadAnswers, setGadAnswers] = useState(Array(GAD7.length).fill(null));
     const [currentQ, setCurrentQ] = useState({ type: 'open' , index: 0});
@@ -85,19 +94,18 @@
     const [submitting, setSubmitting] = useState(false);
     const bottomRef = useRef(null);
 
-    useEffect(()=>{
-      // scroll to bottom when messages update
-      if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+      pushMessage({ from: 'user', text: text.trim() });
 
-    function pushMessage(m){ setMessages(prev => [...prev, m]); }
+    function pushMessage(m){
+      if (!m.timestamp) m.timestamp = new Date().toISOString();
+      setMessages(prev => [...prev, m]);
+    }
 
     function handleUserTextSend(text){
       if (!text || !text.trim()) return;
       pushMessage({ from: 'user', text: text.trim() });
 
       if (phase === 'open'){
-        // After user describes, start PHQ
         setTimeout(()=>{
           pushMessage({ from: 'bot', text: 'Thanks. I\'ll ask a few short questions about mood and anxiety. Please select the option that best matches how often you experienced each item in the last 2 weeks.' });
           setPhase('phq');
@@ -105,24 +113,20 @@
           pushMessage({ from: 'bot', text: `PHQ-9: 1) ${PHQ9[0]}` });
         }, 600);
       } else if (phase === 'more'){
-        // After extra free text, finalize
         setTimeout(()=> finalizeAssessment(), 600);
       }
     }
 
     function answerOption(value){
-      // value expected 0-3
       if (currentQ.type === 'phq'){
         const idx = currentQ.index;
         const copy = phqAnswers.slice(); copy[idx] = value; setPhqAnswers(copy);
         pushMessage({ from: 'user', text: ['Not at all','Several days','More than half the days','Nearly every day'][value] });
-        // If suicidal item (last PHQ item) flagged -> important
         const next = idx + 1;
         if (next < PHQ9.length){
           setCurrentQ({ type: 'phq', index: next });
           setTimeout(()=> pushMessage({ from: 'bot', text: `PHQ-9: ${next+1}) ${PHQ9[next]}` }), 400);
         } else {
-          // move to GAD
           setPhase('gad');
           setCurrentQ({ type: 'gad', index: 0 });
           setTimeout(()=> pushMessage({ from: 'bot', text: `GAD-7: 1) ${GAD7[0]}` }), 500);
@@ -136,7 +140,6 @@
           setCurrentQ({ type: 'gad', index: next });
           setTimeout(()=> pushMessage({ from: 'bot', text: `GAD-7: ${next+1}) ${GAD7[next]}` }), 400);
         } else {
-          // finished structured questions
           setPhase('more');
           setCurrentQ({ type: 'more' });
           setTimeout(()=> pushMessage({ from: 'bot', text: 'Thanks. Anything else you\'d like to share? (optional)'}), 500);
@@ -150,14 +153,12 @@
       const phqLevel = scoreInterpretPHQ9(phqScore);
       const gadLevel = scoreInterpretGAD7(gadScore);
 
-      // Combine all user free text for keyword detection
       const userText = messages.filter(m=>m.from==='user').map(m=>m.text).join(' ');
       const conditions = detectConditions(userText);
-      const flaggedUrgent = conditions.some(c => /suicid/i.test(c)) || (phqAnswers[8] && Number(phqAnswers[8]) > 0);
+      const rating = overallRating(phqScore, gadScore, flaggedUrgent);
 
       const rating = overallRating(phqScore, gadScore, flaggedUrgent);
 
-      // Build summary text
       let summary = `Summary:\nPHQ-9: ${phqScore} (${phqLevel}). GAD-7: ${gadScore} (${gadLevel}). Overall rating: ${rating}.`;
       if (conditions.length) summary += '\nPossible concerns: ' + conditions.join(', ') + '.';
       if (flaggedUrgent) summary += '\nUrgent note: suicidal thoughts detected. Please contact local emergency services or a crisis line immediately.';
@@ -166,13 +167,11 @@
 
       setTimeout(()=>{
         pushMessage({ from: 'bot', text: summary });
-
         // Suggested next steps
         const suggestions = [];
         if (flaggedUrgent) suggestions.push('Contact local emergency services or a crisis hotline immediately.');
         if (phqScore >= 10) suggestions.push('Consider seeking a professional mental health assessment for depression.');
-        if (gadScore >= 10) suggestions.push('Consider talking to a counselor about anxiety management.');
-        if (!flaggedUrgent && phqScore < 10 && gadScore < 10) suggestions.push('Symptoms appear mild; monitor and reach out if they worsen.');
+        if (gadScore >= 10) suggestions.push('Consider talking to a counselor about anxiety management.');        if (!flaggedUrgent && phqScore < 10 && gadScore < 10) suggestions.push('Symptoms appear mild; monitor and reach out if they worsen.');
 
         if (suggestions.length){
           pushMessage({ from: 'bot', text: 'Suggested next steps:\n' + suggestions.join('\n') });
@@ -237,24 +236,49 @@
     }
 
     return e('div', null,
-      e('h1', null, 'MindWell — Chatbot'),
-      e('div', { style: { minHeight: '320px', maxHeight: '60vh', overflow: 'auto', padding: '12px', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff' } },
-        messages.map((m,i)=> e('div', { key: i, style: { margin: '8px 0' } }, e(ChatMessage, { m }))),
-        e('div', { ref: bottomRef })
+      e('div', { className: 'header-row' },
+        e('div', { style: { display:'flex', alignItems:'center', gap:12 } },
+          e('div', { className: 'brand-mark' }, 'MW'),
+          e('div', null, e('h1', null, 'MindWell'), e('div', { className: 'tagline' }, 'A friendly mental-health chatbot — prototype'))
+        ),
+        e('div', { className: 'small' }, 'Private — data stays in your browser')
       ),
-      quickOptions ? e('div', { className: 'options', style: { marginTop: 8 } },
-        quickOptions.map((opt, idx)=> e('button', { key: idx, onClick: ()=>answerOption(idx), style: { marginRight: 8 } }, opt))
+
+      e('div', { className: 'chat-wrap' },
+        e('div', { className: 'chat-window' },
+          messages.map((m,i)=> e('div', { key: i }, e(ChatMessage, { m }))),
+          e('div', { ref: bottomRef })
+        )
+      ),
+
+      quickOptions ? e('div', { className: 'options' },
+        quickOptions.map((opt, idx)=> e('button', { key: idx, onClick: ()=>answerOption(idx) }, opt))
       ) : null,
-      e('form', { onSubmit: handleSubmit, style: { marginTop: 12, display: 'flex', gap: 8 } },
-        e('input', { value: input, onChange: (ev)=>setInput(ev.target.value), placeholder: quickOptions ? 'You can also send a message — quick options are shown above' : 'Type your message here', style: { flex: 1, padding: '8px' } }),
-        e('button', { type: 'submit' }, 'Send')
+
+      e('form', { onSubmit: handleSubmit, className: 'form-row' },
+        e('input', {
+          value: input,
+          onChange: (ev)=>setInput(ev.target.value),
+          placeholder: quickOptions ? 'You can also send a message — quick options are shown above' : 'Type your message here',
+          onKeyDown: (ev)=>{ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); handleSubmit(); } },
+          type: 'text'
+        }),
+        e('button', { type: 'submit', className: 'send-btn' },
+          e('svg', { className: 'send-icon', viewBox: '0 0 24 24', xmlns: 'http://www.w3.org/2000/svg' },
+            e('path', { d: 'M2 21l21-9L2 3v7l15 2-15 2v7z', fill: 'currentColor' })
+          ),
+          'Send'
+        )
       ),
-      e('div', { style: { marginTop: 10, display: 'flex', gap: 8 } },
+
+      e('div', { className: 'controls' },
         e('button', { onClick: downloadData }, 'Download data'),
         e('button', { onClick: clearData }, 'Clear saved responses')
       ),
-      submitting ? e('div', { style: { marginTop: 8 } }, 'Saving...') : null,
-      e('footer', { style: { marginTop: 12 } }, 'Prototype only — not a replacement for professional help.')
+
+      submitting ? e('div', { className: 'small' }, 'Saving...') : null,
+
+      e('footer', { className: 'footer-note' }, 'Prototype only — not a replacement for professional help. For urgent help contact local emergency services or a crisis line.')
     );
   }
 
