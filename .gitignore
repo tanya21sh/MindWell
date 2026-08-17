@@ -1,0 +1,18 @@
+# Node modules
+node_modules/
+server/node_modules/
+
+# Logs
+npm-debug.log*
+
+# Env files
+.env
+
+# Mac
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Local data
+server/data/responses.json
