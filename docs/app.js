@@ -1,4 +1,22 @@
 (function(){
+  // Check that React is available (if CDN blocked or network failed, show friendly error)
+  if (typeof React === 'undefined' || typeof ReactDOM === 'undefined'){
+    const root = document.getElementById('root');
+    if (root){
+      root.innerHTML = '';
+      const box = document.createElement('div');
+      box.style.padding = '18px';
+      box.style.border = '1px solid #f2c2c2';
+      box.style.background = '#fff7f7';
+      box.style.color = '#7a1a1a';
+      box.style.borderRadius = '8px';
+      box.style.maxWidth = '720px';
+      box.innerHTML = '<strong>React failed to load</strong><div style="margin-top:8px">The required scripts (React/ReactDOM) did not load. This can happen when the CDN is blocked or your network prevents loading from unpkg.com. Try reloading the page, or allow access to <code>https://unpkg.com</code>.</div>';
+      root.appendChild(box);
+    }
+    return;
+  }
+
   const e = React.createElement;
   const { useState, useRef, useEffect } = React;
 
