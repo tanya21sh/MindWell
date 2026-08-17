@@ -282,5 +282,39 @@
     );
   }
 
-  ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+  try{
+    ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+  } catch (err){
+    console.error('Render error', err);
+    const root = document.getElementById('root');
+    if (root){
+      root.innerHTML = '';
+      const pre = document.createElement('pre');
+      pre.style.background = 'rgba(255,240,240,0.95)';
+      pre.style.color = '#900';
+      pre.style.padding = '12px';
+      pre.style.border = '1px solid #f2c2c2';
+      pre.style.borderRadius = '8px';
+      pre.style.whiteSpace = 'pre-wrap';
+      pre.textContent = 'Application error:\n' + (err && err.stack ? err.stack : String(err));
+      root.appendChild(pre);
+    }
+  }
+
+  window.addEventListener('error', function(e){
+    const root = document.getElementById('root');
+    if (root){
+      const el = document.createElement('pre');
+      el.style.background = 'rgba(255,240,240,0.95)';
+      el.style.color = '#900';
+      el.style.padding = '12px';
+      el.style.border = '1px solid #f2c2c2';
+      el.style.borderRadius = '8px';
+      el.style.whiteSpace = 'pre-wrap';
+      el.textContent = 'Uncaught error:\n' + (e && e.error && e.error.stack ? e.error.stack : e.message || String(e));
+      root.appendChild(el);
+    }
+    console.error(e.error || e.message || e);
+  });
+
 })();
