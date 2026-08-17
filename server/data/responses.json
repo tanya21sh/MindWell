@@ -1,0 +1,186 @@
+[
+  {
+    "id": 1786994844562,
+    "timestamp": "2026-08-17T19:27:24.562Z",
+    "payload": {
+      "timestamp": "2026-08-17T19:27:23.840Z",
+      "transcript": [
+        {
+          "from": "bot",
+          "text": "Hi — I'm MindWell. I can ask a few questions to understand how you're feeling. This is a prototype and not a diagnosis. For emergencies, contact local emergency services."
+        },
+        {
+          "from": "bot",
+          "text": "Can you briefly describe what's been bothering you recently? You can type freely."
+        },
+        {
+          "from": "user",
+          "text": "I cannot able to sleep at night, I wold be awake all time at night"
+        },
+        {
+          "from": "bot",
+          "text": "Thanks. I'll ask a few short questions about mood and anxiety. Please select the option that best matches how often you experienced each item in the last 2 weeks."
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 1) Little interest or pleasure in doing things"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 2) Feeling down, depressed, or hopeless"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 3) Trouble falling or staying asleep, or sleeping too much"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 4) Feeling tired or having little energy"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 5) Poor appetite or overeating"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 6) Feeling bad about yourself — or that you are a failure or have let yourself or your family down"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 7) Trouble concentrating on things, such as reading the newspaper or watching television"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 8) Moving or speaking so slowly that other people could have noticed. Or the opposite — being so fidgety or restless that you have been moving a lot more than usual"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "PHQ-9: 9) Thoughts that you would be better off dead or of hurting yourself in some way"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 1) Feeling nervous, anxious, or on edge"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 2) Not being able to stop or control worrying"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 3) Worrying too much about different things"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 4) Trouble relaxing"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 5) Being so restless that it is hard to sit still"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 6) Becoming easily annoyed or irritable"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "GAD-7: 7) Feeling afraid as if something awful might happen"
+        },
+        {
+          "from": "user",
+          "text": "Nearly every day"
+        },
+        {
+          "from": "bot",
+          "text": "Thanks. Anything else you'd like to share? (optional)"
+        }
+      ],
+      "phqAnswers": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "gadAnswers": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "phqScore": 27,
+      "gadScore": 21,
+      "phqLevel": "Severe",
+      "gadLevel": "Severe",
+      "conditions": [],
+      "rating": "Worst",
+      "flaggedUrgent": true
+    }
+  }
+]
