@@ -56,21 +56,10 @@ To find the process using port 3000:
 
 ## Client-only option
 
-The app can also run entirely in the browser with localStorage instead of the Express server.
-
-To publish the frontend to GitHub Pages using the docs/ folder:
-
-1. Make sure the files in docs/ are up to date.
-2. Commit and push to GitHub.
-3. In GitHub repository settings > Pages, choose Source: "Deploy from a branch" and set the folder to docs.
-4. Your site will be published at:
-
-   https://<your-username>.github.io/<repo-name>/
-
 Notes on client-only mode:
 - responses are saved only in the current browser
 - data is not stored centrally
-- a Download data button lets users export responses as JSON
+- a Download data button lets users export responses as JSON and fabricate it into a readable PDF.
 
 ## Notes
 
