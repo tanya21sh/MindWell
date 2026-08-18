@@ -4,6 +4,11 @@ Prototype full-stack mental-health chatbot demo
 
 This repository contains a minimal prototype app (Express server + static React frontend) that asks PHQ-9 and GAD-7 style questions, computes scores client-side, and stores responses in a JSON file at server/data/responses.json.
 
+## Run the project using the live link:
+
+https://tanya21sh.github.io/MindWell/
+
+
 ## Run the full project locally
 
 From the project root:
